@@ -1,0 +1,8 @@
+dist
+package-lock.json
+.env
+dist/*
+.vscode/*
+test.db
+node_modules
+
