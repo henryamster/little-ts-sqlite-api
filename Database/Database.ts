@@ -19,14 +19,27 @@ export class Database {
         this.tables = tables;
     }
 
-    typeMap = Object.fromEntries(typemap.map(item => [item.typescriptType, item.sqliteType]));
+    // typeMap = Object.fromEntries(typemap.map(item => [item.typescriptType, item.sqliteType]));
+
+    typeMap = {
+        'number': 'INTEGER',
+        'string': 'TEXT',
+        'boolean': 'INTEGER',
+        'Date': 'TEXT',
+        // Add other type mappings as needed
+    };
 
     public initializeDbContext() {
         for (const table of this.tables) {
-            const tableName = table.tableName;
+            const tableName = `"${table.tableName}"`; // Wrap table name in double quotes
             const columns = table.columns;
-            // Use the type map to get the correct type for each column
-            const columnDefinitions = columns.map(column => `${column.name} ${this.typeMap[column.type] || column.type}`).join(',');
+            const columnDefinitions = columns.map(column => {
+                const columnType = this.typeMap[column.type as keyof typeof this.typeMap];
+                if (!columnType) {
+                    throw new Error(`Unsupported column type '${column.type}' for column '${column.name}' in table '${table.tableName}'`);
+                }
+                return `${column.name} ${columnType}`;
+            }).join(',');
             const query = `CREATE TABLE IF NOT EXISTS ${tableName} (${columnDefinitions})`;
             this.run(query);
             console.log(query);
@@ -35,7 +48,7 @@ export class Database {
 
     public clearDatabase() {
         for (const table of this.tables) {
-            const tableName = table.tableName;
+            const tableName = `"${table.tableName}"`; // Wrap table name in double quotes
             const query = `DELETE FROM ${tableName}`;
             this.run(query);
             console.log(query);

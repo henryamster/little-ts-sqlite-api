@@ -7,7 +7,7 @@ import { Table } from "./Table";
 
 
 export class DatabaseHelper {
-    static ColumnGenerator<T extends { new(...args: any[]): {}; }>(classConstructor: T) {
+    static ColumnGenerator<T extends { new(...args: any[]): {}; }>(classConstructor: T): Column[] {
         const instance = new classConstructor();
         const keys = Object.keys(instance);
         const columns = keys.map(key => {
@@ -17,16 +17,24 @@ export class DatabaseHelper {
         return columns;
     }
 
-    static TableGenerator<T extends { new(...args: any[]): {}; }>(tableName: string, classConstructor: T) {
-        const columns = this.ColumnGenerator(classConstructor);
-        return new Table(tableName, columns);
+    static TableGenerator<T extends { new(...args: any[]): {}; }>(tableName: string, classConstructor: T): Table {
+        const instance = new classConstructor();
+        const columns = Object.keys(instance).map(key => {
+            const typeMetadata = Reflect.getMetadata('design:type', instance, key);
+            const type = typeMetadata ? typeMetadata.name : 'undefined';
+            return { name: key, type };
+        });
+        return {
+            tableName: classConstructor.name,
+            columns
+        };
     }
 
-    static DatabaseGenerator(tables: Table[]) {
+    static DatabaseGenerator(tables: Table[]) : Database{
         return new Database(tables);
     }
 
-    static RecordGenerator<T extends Record<string, unknown>>(object: T) {
+    static RecordGenerator<T extends Record<string, unknown>>(object: T): T {
         return object;
     }
 }

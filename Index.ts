@@ -1,54 +1,49 @@
 // Models
-import TestMessage from './models/TestMessage';
-import SloganTShirt from './models/SloganTShirt';
-import FruitTransaction from './models/FruitTransaction';
+// import TestMessage from './Models/TestMessage';
+// import SloganTShirt from './Models/SloganTShirt';
+// import FruitTransaction from './Models/FruitTransaction';
 // Database
+import Controller, { controller } from './Database/Controller';
 import { addModels } from './Database/DataLayer';
 import { repo } from './Database/Repository';
+import YoutubeVideo from './Models/YoutubeVideo';
+import express, { Request, Response } from 'express';
 
 // Add models to database
 addModels();
 
-// Load repositories
-const R_FruitTransaction = repo(FruitTransaction);
-const R_SloganTShirt = repo(SloganTShirt);
-const R_TestMessage = repo(TestMessage);
 
 
-// Testing Zone 
+// const R_YoutubeVideo = repo(YoutubeVideo);
 
-// Create a new TestMessage
-const testMessage = new TestMessage(1, 'Hello World');
+// const video = YoutubeHelper.retrieveVideoInfoFromId('dQw4w9WgXcQ').then(video => {
+//         R_YoutubeVideo.create(video).then(
+//                 _ => R_YoutubeVideo.all().then(videos => {
+//                         console.log(videos);
+//                 })
+//         );
+// });
 
-R_TestMessage.create(testMessage).then(_ => R_TestMessage.all()
-    .then(testMessages => {
-        console.log(testMessages);
-    }));
+const youtubeController = controller(YoutubeVideo);
 
-// Create a new SloganTShirt
-const tshirt = new SloganTShirt(
-    1,
-    'I am a t-shirt',
-    'I am a slogan',
-    'XL',
-    '100% RED',
-);
+// Write a new route for adding a video to the database, retrieving the info from youtube
 
-R_SloganTShirt.create(tshirt).then(_ => R_SloganTShirt.all()
-    .then(slogan_t_shirts => {
-        console.log(slogan_t_shirts);
-    }));
+// const video = YoutubeHelper.retrieveVideoInfoFromId('dQw4w9WgXcQ').then(video => {
+//     youtubeController.create({ body: video } as unknown as Request<{}, {}, YoutubeVideo, {}, {}>, null as unknown as Response<YoutubeVideo>);
+// }).then(_ => {
+//     youtubeController.all({} as Request, null as unknown as Response<YoutubeVideo[]>);
+// })
 
 
+// Create express app
+const app = express();
+app.use(express.json());
+app.use('/youtube', youtubeController.router);
 
-const q = `SELECT * FROM ${TestMessage.name}`;
-
-console.log(q);
-
-R_TestMessage.customQuery(q).then(testMessages => {
-    console.log(testMessages);
+// Start server
+const port = 3000;
+app.listen(port, () => {
+        console.log(`Server listening on port ${port}`);
 });
 
-R_FruitTransaction.all().then(fruitTransactions => {
-    console.log(fruitTransactions);
-});
+
