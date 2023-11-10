@@ -24,7 +24,7 @@ addModels();
 //         );
 // });
 
-const youtubeController = controller(YoutubeVideo);
+// const youtubeController = controller(YoutubeVideo);
 
 // Write a new route for adding a video to the database, retrieving the info from youtube
 
@@ -35,11 +35,14 @@ const youtubeController = controller(YoutubeVideo);
 // })
 
 
+const testMessageController = controller(TestMessage);
+
+
 // Create express app
 const app = express();
 app.use(express.json());
-app.use('/youtube', youtubeController.router);
-
+// app.use('/youtube', youtubeController.router);
+app.use('/test', testMessageController.router);
 // Start server
 const port = 3000;
 app.listen(port, () => {
