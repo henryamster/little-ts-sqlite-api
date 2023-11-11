@@ -1,3 +1,4 @@
+
 export const SQLITE_TYPE_KEY = Symbol('sqliteType');
 export type ColumnType = 'INTEGER' | 'TEXT' | 'REAL' | 'BLOB';
 type TypescriptTypes = 'number' | 'string' | 'boolean' | 'object' | 'undefined' | 'symbol' | 'bigint' | 'function' | 'any' | 'unknown' | 'never' | 'void' | 'null' | 'array' | 'tuple' | 'enum' | 'interface' | 'class' | 'type' | 'union' | 'intersection' | 'literal' | 'conditional' | 'intrinsic' | 'reference' | 'nonPrimitive' | 'stringLiteral' | 'numberLiteral' | 'booleanLiteral';

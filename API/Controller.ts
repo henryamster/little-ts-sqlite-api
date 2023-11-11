@@ -1,11 +1,6 @@
-import { repo } from './Repository';
-import { Repository } from './Repository';
+import { repo } from '../Database/Repository';
+import { Repository } from '../Database/Repository';
 import { Router, Request, Response } from 'express';
-
-
-
-
-
 
 // We want to modify this class so that it wraps the responses in an HTTP response
 export default class Controller<T extends { [key: string]: any; }> {
@@ -74,6 +69,36 @@ export default class Controller<T extends { [key: string]: any; }> {
     getRouter(): Router {
         return this.router;
     }
+
+    // addCustomRoute(method: 'get' | 'post' | 'put' | 'delete', path: string, handler: (req: Request, res: Response, repository: Repository<T>) => Promise<void>) {
+    //     this.router[method](path, async (req, res) => {
+    //         try {
+    //             // we want to give the handler access to the repository
+    //             // so we pass it as a parameter
+    //             await handler(req, res, this.repository);
+    //         } catch (error) {
+    //             res.status(500).json({ error: `${error}` });
+    //         }
+    //     });
+
+    // }
+
+    // We want to rewrite the above method so that it will override any parameterized routes
+    // in this controller (e.g. /:id) and then call the handler
+    addCustomRoute(method: 'get' | 'post' | 'put' | 'delete', path: string, handler: (req: Request, res: Response, repository: Repository<T>) => Promise<void>) {
+        this.router[method](path, async (req, res) => {
+            try {
+                // we want to give the handler access to the repository
+                // so we pass it as a parameter
+                await handler(req, res, this.repository);
+            } catch (error) {
+                res.status(500).json({ error: `${error}` });
+            }
+        });
+        // put this route at the top of the stack
+        this.router.stack.unshift(this.router.stack.pop());
+    }
+    
 }
 
 export const controller = <T extends { [key: string]: any; }>(t: new (...args: any[]) => T) => new Controller<T>(t);

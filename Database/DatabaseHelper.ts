@@ -3,9 +3,6 @@ import { Database } from "./Database";
 import { Column } from "./Column";
 import { Table } from "./Table";
 
-
-
-
 export class DatabaseHelper {
     static ColumnGenerator<T extends { new(...args: any[]): {}; }>(classConstructor: T): Column[] {
         const instance = new classConstructor();

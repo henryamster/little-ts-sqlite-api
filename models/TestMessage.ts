@@ -15,3 +15,4 @@ export default class TestMessage implements ITestMessage{
         this.message = message;
     }   
 }
+
