@@ -2,8 +2,9 @@ import { repo } from "../Database/Repository";
 import { Repository } from "../Database/Repository";
 import { Router, Request, Response } from "express";
 import { LogEvent } from "../Utilities/Logger";
-import { ControllerMethodForms } from "../FormBuilder";
-import { Form } from "../FormBuilder";
+import { ControllerMethodForms } from "../Client/FormBuilder";
+import { Form } from "../Client/FormBuilder";
+import { QuerySanitizer } from "./QuerySanitizer";
 
 // We want to modify this class so that it wraps the responses in an HTTP response
 export default class Controller<T extends { [key: string]: any }> {
@@ -22,9 +23,9 @@ export default class Controller<T extends { [key: string]: any }> {
     this.router.post("/Create", this.create.bind(this));
     this.router.get("/All", this.all.bind(this));
     this.router.get("/Query", this.query.bind(this));
-    this.router.get("Get/:id", this.find.bind(this));
-    this.router.put("Update/:id", this.update.bind(this));
-    this.router.delete("Delete/:id", this.delete.bind(this));
+    this.router.get("Find/:id", this.find.bind(this));
+    this.router.put("/Update/:id", this.update.bind(this));
+    this.router.delete("/Delete/:id", this.delete.bind(this));
     
   }
   forms(req: Request, res: Response): void {
@@ -76,8 +77,8 @@ export default class Controller<T extends { [key: string]: any }> {
     });
   }
   find(req: Request, res: Response): void {
-    LogEvent.fromString("Finding item " + req.params.id);
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.query.id as string);
+    LogEvent.fromString("Finding item " + id);
     this.repository.find(id).then((item: T) => {
       if (item) {
         LogEvent.fromString("Item found");
@@ -88,9 +89,10 @@ export default class Controller<T extends { [key: string]: any }> {
       }
     });
   }
+
   update(req: Request, res: Response): void {
-    LogEvent.fromString("Updating item " + req.params.id);
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.query.id as string);
+    LogEvent.fromString("Updating item " + id);
     this.repository.update(id, req.body).then(() => {
       this.repository.find(id).then((item: T) => {
         if (item) {
@@ -103,9 +105,10 @@ export default class Controller<T extends { [key: string]: any }> {
       });
     });
   }
+
   delete(req: Request, res: Response): void {
-    LogEvent.fromString("Deleting item " + req.params.id);
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.query.id as string);
+    LogEvent.fromString("Deleting item " + id);
     this.repository
       .delete(id)
       .then(() => {
@@ -118,7 +121,8 @@ export default class Controller<T extends { [key: string]: any }> {
       });
   }
   query(req: Request, res: Response): void {
-    const q = req.query.q as string;
+    let q = req.query.query as string;
+    q= QuerySanitizer.santizieQuery(q);
     LogEvent.fromString("Querying items with query " + q);
     this.repository
       .customQuery(q)

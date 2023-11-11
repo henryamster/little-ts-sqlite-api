@@ -2,13 +2,13 @@ import TestMessage from "./Models/TestMessage";
 import { LogEvent } from "./Utilities/Logger";
 import { testMessageController } from "./Index";
 import { ColumnType } from "./Database/Column";
-import Controller, { controller } from "./API/Controller";
+import { controller } from "./API/Controller";
+import Controller from "./API/Controller";
 import { Request, Response } from "express";
 import { Repository } from "./Database/Repository";
 
-
 export function customRoutes() {
-  testMessageController.addCustomRoute("get", "/hello", async (req, res) => {
+  testMessageController.addCustomRoute("get", "/hello", async (req:Request, res:Response) => {
     const messages = await testMessageController.repository.typedQuery<number>(
       "SELECT MAX(id) FROM TestMessage"
     );
@@ -23,7 +23,7 @@ export function customRoutes() {
   });
 
   // Webhook pool
-  testMessageController.addCustomRoute("post", "/webhook", async (req, res) => {
+  testMessageController.addCustomRoute("post", "/webhook", async (req:Request, res:Response) => {
     const message = req.body;
     LogEvent.fromString(
       `Received message ${JSON.stringify(message)} from ${req.ip}: ${
@@ -38,5 +38,4 @@ export function customRoutes() {
     LogEvent.fromString(`Created message with id ${id}`);
     res.status(200).json(message);
   });
-
 }

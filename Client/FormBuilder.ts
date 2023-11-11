@@ -1,7 +1,6 @@
-import Controller from "./API/Controller";
-import { LogEvent } from "./Utilities/Logger";
+import Controller from "../API/Controller";
+import { LogEvent } from "../Utilities/Logger";
 import "reflect-metadata";
-
 
 class FormElement {
   constructor(
@@ -18,12 +17,12 @@ class FormElement {
   }
 }
 export class Form {
-constructor(
+  constructor(
     public elements: FormElement[] = [],
     public action: string = "",
     public method: string = "",
     public type: string = ""
-) {}
+  ) {}
 
   render(): string {
     let formHtml = `
@@ -42,32 +41,20 @@ constructor(
   }
 }
 
-
-export class FormWithControllerContext<T extends { [key: string]: any }> extends Form {
-    constructor(
-        public elements: FormElement[] = [],
-        public controller: Controller<T>,
-        public action: string = "",
-        public method: string = "",
-        public type: string = ""
-    ) {
-        super(elements, action, method, type);
-    }
-
+export class FormWithControllerContext<
+  T extends { [key: string]: any }
+> extends Form {
+  constructor(
+    public elements: FormElement[] = [],
+    public controller: Controller<T>,
+    public action: string = "",
+    public method: string = "",
+    public type: string = ""
+  ) {
+    super(elements, action, method, type);
+  }
 
   render(): string {
-    // get controller path
-    // const path = this.controller.router.stack.find(
-    //     (r) => r.route.path === this.action
-    //     )?.route.path;
-    // 
-    /**
-let rootPath = getControllerRootPath(this.controller, routeControllerMap);
-let formHtml = `
-  <h2>${this.method} - ${rootPath}${this.action} - ${this.type}</h2>
-  <form action="${rootPath}${this.action}">
-`; */
-    // const path = this.controller.getCustomRouteAction(this.action);
     let formHtml = `
             <h2>${this.method} - ${this.action} - ${this.type}</h2>
             <form action="${this.action}" method="${this.method}">
@@ -412,12 +399,12 @@ export class ControllerMethodForms {
   }
 
   // this one is just a submit
-public static AllForm<T extends object>(type: T, controller: Controller<T>): Form {
+  public static AllForm<T extends object>(
+    type: T,
+    controller: Controller<T>
+  ): Form {
     return new FormWithControllerContext([], controller, "All", "GET", "All");
-}
-    
-    
-
+  }
 
   // this one is just a texta
   public static QueryForm<T extends object>(
@@ -449,12 +436,12 @@ public static AllForm<T extends object>(type: T, controller: Controller<T>): For
     );
   }
 
-public static CustomRoute<T extends object>(
+  public static CustomRoute<T extends object>(
     path: string,
     type: T,
     form: Form,
     controller: Controller<T>
-): Form {
+  ): Form {
     // clone form
     let clonedForm = JSON.parse(JSON.stringify(form));
     // attach the action
@@ -462,12 +449,22 @@ public static CustomRoute<T extends object>(
     // clonedForm.action = action ? action : '';
     // return the form
     const formWithAction = new FormWithControllerContext(
-        clonedForm.elements,
-        controller,
-        path,
-       "",
-        "CustomRoute"
+      clonedForm.elements,
+      controller,
+      path,
+      "",
+      "CustomRoute"
     );
     return formWithAction;
+  }
 }
+
+export function mapRoutesToControllers(
+  routeControllerMap: Map<string, Controller<any>>
+): Controller<any>[] {
+  const controllers: Controller<any>[] = [];
+  for (let [route, controller] of routeControllerMap) {
+    controllers.push(controller);
+  }
+  return controllers;
 }

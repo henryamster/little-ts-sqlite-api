@@ -1,6 +1,7 @@
 import { log } from "console";
 import { db } from "./DataLayer";
 import { LogEvent, LogEventDecorator } from "../Utilities/Logger";
+import { QuerySanitizer } from "../API/QuerySanitizer";
 
 export class Repository<
   T extends {
@@ -103,12 +104,13 @@ export class Repository<
 
   public async create(item: T): Promise<number> {
     // check if item has id property
+    let autoIncId = 0;
     if (item.hasOwnProperty("id")) {
       LogEvent.fromObject({
         level: "info",
         message: "Repository.create() called",
         data: {
-          item: item,
+          item: JSON.stringify(item),
         },
         timestamp: new Date().toISOString(),
       });
@@ -123,8 +125,12 @@ export class Repository<
         },
         timestamp: new Date().toISOString(),
       });
-      item.id = id[0]["MAX(id)"] ? id[0]["MAX(id)"] + 1 : 0;
+      autoIncId= await id[0]["MAX(id)"] ? id[0]["MAX(id)"] + 1 : 0;
     }
+    if (autoIncId != null) {
+      item.id = autoIncId;
+    }
+
     const columns = Object.keys(item).join(",");
     const placeholders = Object.keys(item)
       .map((key) => "?")
@@ -168,10 +174,12 @@ export class Repository<
             timestamp: new Date().toISOString(),
           });
 
+          item.id = this.lastID;
           resolve(this.lastID);
         }
       });
     });
+
   }
 
   public async update(id: number, item: T): Promise<void> {
@@ -311,19 +319,20 @@ export class Repository<
   public async customQuery(query: string, params?: any[]): Promise<T[]> {
     LogEvent.fromObject({
       level: "info",
-      message: "Repository.customQuery() called",
+      message: "Executing custom query",
       data: {
-        query: query,
+        query: QuerySanitizer.santizieQuery(query),
         params: params,
       },
       timestamp: new Date().toISOString(),
     });
-    return await new Promise<T[]>((resolve, reject) => {
+
+    return new Promise<T[]>((resolve, reject) => {
       db.all(query, params, (err, rows) => {
         if (err) {
           LogEvent.fromObject({
             level: "error",
-            message: "Repository.customQuery() called",
+            message: "Error executing custom query",
             data: {
               query: query,
               params: params,
@@ -333,10 +342,11 @@ export class Repository<
           });
 
           reject(err);
+          throw new Error(`Error executing query: ${err.message}`);
         } else {
           LogEvent.fromObject({
             level: "info",
-            message: "Repository.customQuery() called",
+            message: "Custom query executed successfully",
             data: {
               query: query,
               params: params,
@@ -345,7 +355,31 @@ export class Repository<
             timestamp: new Date().toISOString(),
           });
 
-          resolve(rows as T[]);
+          if (Array.isArray(rows)) {
+            LogEvent.fromObject({
+              level: "info",
+              message: "Custom query executed successfully",
+              data: {
+                query: query,
+                params: params,
+                rows: rows,
+              },
+              timestamp: new Date().toISOString(),
+            });
+            resolve(rows as T[]);
+          } else {
+            LogEvent.fromObject({
+              level: "error",
+              message: "Custom query executed successfully",
+              data: {
+                query: query,
+                params: params,
+                rows: rows,
+              },
+              timestamp: new Date().toISOString(),
+            });
+            reject(new Error("Query result is not an array"));
+          }
         }
       });
     });
