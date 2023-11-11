@@ -12,7 +12,7 @@ export class Repository<
   constructor(table: string) {
     this.table = table;
   }
-  @LogEventDecorator("info", "info", "Repository.all() called")
+
   public async all(): Promise<T[]> {
     const query = `SELECT * FROM ${this.table}`;
     LogEvent.fromObject({
@@ -53,7 +53,7 @@ export class Repository<
       });
     });
   }
-  @LogEventDecorator("info", "info", "Repository.find() called")
+
   public async find(id: number): Promise<T> {
     const query = `SELECT * FROM ${this.table} WHERE id = ?`;
     LogEvent.fromObject({
@@ -101,7 +101,6 @@ export class Repository<
     "SELECT MAX(id) FROM TestMessage"
   ); */
 
-  @LogEventDecorator("info", "info", "Repository.create() called")
   public async create(item: T): Promise<number> {
     // check if item has id property
     if (item.hasOwnProperty("id")) {
@@ -174,7 +173,7 @@ export class Repository<
       });
     });
   }
-  @LogEventDecorator("info", "info", "Repository.update() called")
+
   public async update(id: number, item: T): Promise<void> {
     const columns = Object.keys(item)
       .map((key) => `${key} = ?`)
@@ -225,7 +224,6 @@ export class Repository<
     });
   }
 
-  @LogEventDecorator("info", "info", "Repository.delete() called")
   public async delete(id: number): Promise<void> {
     LogEvent.fromObject({
       level: "info",
@@ -267,7 +265,6 @@ export class Repository<
     });
   }
 
-  @LogEventDecorator("info", "info", "Repository.typedQuery() called")
   public async typedQuery<T>(query: string, params?: any[]): Promise<T[]> {
     LogEvent.fromObject({
       level: "info",
@@ -311,7 +308,6 @@ export class Repository<
     });
   }
 
-  @LogEventDecorator("info", "info", "Repository.customQuery() called")
   public async customQuery(query: string, params?: any[]): Promise<T[]> {
     LogEvent.fromObject({
       level: "info",
@@ -353,6 +349,9 @@ export class Repository<
         }
       });
     });
+  }
+  getTypeName(): string {
+    return this.table;
   }
 }
 

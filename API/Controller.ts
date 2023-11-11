@@ -2,25 +2,64 @@ import { repo } from "../Database/Repository";
 import { Repository } from "../Database/Repository";
 import { Router, Request, Response } from "express";
 import { LogEvent } from "../Utilities/Logger";
+import { ControllerMethodForms } from "../FormBuilder";
+import { Form } from "../FormBuilder";
 
 // We want to modify this class so that it wraps the responses in an HTTP response
 export default class Controller<T extends { [key: string]: any }> {
   repository: Repository<T>;
   router: Router;
+  instance: T;
   constructor(model: new () => T) {
     this.repository = repo(model);
     this.router = Router();
     this.initializeRoutes();
+    this.instance = new model();
   }
   initializeRoutes(): void {
     LogEvent.fromString("Initializing routes");
-    this.router.post("/", this.create.bind(this));
-    this.router.get("/", this.all.bind(this));
-    this.router.get("/query", this.query.bind(this));
-    this.router.get("/:id", this.find.bind(this));
-    this.router.put("/:id", this.update.bind(this));
-    this.router.delete("/:id", this.delete.bind(this));
+    this.router.get('/forms', this.forms.bind(this));
+    this.router.post("/Create", this.create.bind(this));
+    this.router.get("/All", this.all.bind(this));
+    this.router.get("/Query", this.query.bind(this));
+    this.router.get("Get/:id", this.find.bind(this));
+    this.router.put("Update/:id", this.update.bind(this));
+    this.router.delete("Delete/:id", this.delete.bind(this));
+    
   }
+  forms(req: Request, res: Response): void {
+          LogEvent.fromString("Getting forms");
+          const forms: Form[] =[
+            ControllerMethodForms.AllForm(this.instance, this),
+            ControllerMethodForms.CreateForm(this.instance, this),
+            ControllerMethodForms.DeleteForm(this.instance, this),
+            ControllerMethodForms.FindForm(this.instance, this),
+            ControllerMethodForms.QueryForm(this.instance , this),
+            ControllerMethodForms.UpdateForm(this.instance, this),
+          ]
+
+         // now the forms have actions attached but need to be typed
+        let html = "";
+        // Let's render each form and add it to the html
+        const renderList: string[] = [];
+      for (const form of forms) {
+        const renderedForm = form.render();
+        renderList.push(renderedForm);
+      }
+      html += renderList.join("\n");
+      res.send(html);
+    // res.status(200).json(renderList);
+  }
+  // .getCustomRouteAction(form.name)
+  getCustomRouteAction(name: string) {
+    //just get the first /controller name/ route
+    LogEvent.fromString(`Getting custom route action for ${name}`);
+    const route = this.router.stack.find((r) => r.route.path === name)?.route;
+    LogEvent.fromString(`Getting custom route action for ${route}`);
+    console.log(route);
+    return route;
+  }
+
   create(req: Request, res: Response): void {
     LogEvent.fromString("Creating item");
     this.repository.create(req.body).then((id: number) => {
@@ -123,6 +162,11 @@ export default class Controller<T extends { [key: string]: any }> {
     LogEvent.fromString(`Custom route ${method.toUpperCase()} ${path} added`);
     this.router.stack.unshift(this.router.stack.pop());
   }
+
+  getTypeName(): string {
+    return this.repository.getTypeName();
+  }
+
 }
 
 export const controller = <T extends { [key: string]: any }>(

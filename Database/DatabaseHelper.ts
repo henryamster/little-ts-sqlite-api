@@ -4,7 +4,6 @@ import { Table } from "./Table";
 import { LogEvent, LogEventDecorator } from "../Utilities/Logger";
 
 export class DatabaseHelper {
-  @LogEventDecorator("info", "info", "DatabaseHelper.ColumnGenerator() called")
   static ColumnGenerator(name: string, type: ColumnType): Column {
     LogEvent.fromObject({
       level: "info",
@@ -17,7 +16,7 @@ export class DatabaseHelper {
     });
     return new Column(name, type);
   }
-  @LogEventDecorator("info", "info", "DatabaseHelper.TableGenerator() called")
+
   static TableGenerator<T extends { new (...args: any[]): {} }>(
     tableName: string,
     classConstructor: T
@@ -43,11 +42,6 @@ export class DatabaseHelper {
     };
   }
 
-  @LogEventDecorator(
-    "info",
-    "info",
-    "DatabaseHelper.DatabaseGenerator() called"
-  )
   static DatabaseGenerator(tables: Table[]): Database {
     LogEvent.fromObject({
       level: "info",
@@ -60,7 +54,6 @@ export class DatabaseHelper {
     return new Database(tables);
   }
 
-  @LogEventDecorator("info", "info", "DatabaseHelper.RecordGenerator() called")
   static RecordGenerator<T extends Record<string, unknown>>(object: T): T {
     LogEvent.fromObject({
       level: "info",
