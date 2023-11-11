@@ -1,4 +1,4 @@
-import { ColumnType } from "../Database/ColumnType";
+import { ColumnType } from '../Database/Column';
 
 export interface ITestMessage {
     id: number;

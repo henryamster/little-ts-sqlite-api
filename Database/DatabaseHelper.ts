@@ -1,19 +1,23 @@
-import { SQLITE_TYPE_KEY, ColumnType } from "./TypeMap";
 import { Database } from "./Database";
-import { Column } from "./Column";
+import { Column, ColumnType } from "./Column";
 import { Table } from "./Table";
+import { LogEvent, LogEventDecorator } from "../Utilities/Logger";
 
 export class DatabaseHelper {
-    static ColumnGenerator<T extends { new(...args: any[]): {}; }>(classConstructor: T): Column[] {
-        const instance = new classConstructor();
-        const keys = Object.keys(instance);
-        const columns = keys.map(key => {
-            const sqliteType = Reflect.getMetadata(SQLITE_TYPE_KEY, instance, key) as ColumnType;
-            return new Column(key, sqliteType);
+    @LogEventDecorator('info', 'info', 'DatabaseHelper.ColumnGenerator() called')
+    static ColumnGenerator(name: string, type: ColumnType): Column {
+        LogEvent.fromObject({
+            level: 'info',
+            message: 'DatabaseHelper.ColumnGenerator() called',
+            data: {
+                name: name,
+                type: type
+            },
+            timestamp: new Date().toISOString()
         });
-        return columns;
+        return new Column(name,type);
     }
-
+    @LogEventDecorator('info', 'info', 'DatabaseHelper.TableGenerator() called')
     static TableGenerator<T extends { new(...args: any[]): {}; }>(tableName: string, classConstructor: T): Table {
         const instance = new classConstructor();
         const columns = Object.keys(instance).map(key => {
@@ -21,17 +25,44 @@ export class DatabaseHelper {
             const type = typeMetadata ? typeMetadata.name : 'undefined';
             return { name: key, type };
         });
+        LogEvent.fromObject({
+            level: 'info',
+            message: 'DatabaseHelper.TableGenerator() called',
+            data: {
+                tableName: tableName,
+                classConstructor: classConstructor
+            },
+            timestamp: new Date().toISOString()
+        });
         return {
             tableName: classConstructor.name,
             columns
         };
     }
 
+    @LogEventDecorator('info', 'info', 'DatabaseHelper.DatabaseGenerator() called')
     static DatabaseGenerator(tables: Table[]) : Database{
+        LogEvent.fromObject({
+            level: 'info',
+            message: 'DatabaseHelper.DatabaseGenerator() called',
+            data: {
+                tables: tables
+            },
+            timestamp: new Date().toISOString()
+        });
         return new Database(tables);
     }
 
+    @LogEventDecorator('info', 'info', 'DatabaseHelper.RecordGenerator() called')
     static RecordGenerator<T extends Record<string, unknown>>(object: T): T {
+        LogEvent.fromObject({
+            level: 'info',
+            message: 'DatabaseHelper.RecordGenerator() called',
+            data: {
+                object: object
+            },
+            timestamp: new Date().toISOString()
+        });
         return object;
     }
 }
