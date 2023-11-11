@@ -28,13 +28,13 @@ export class LogEvent {
                 this.context = context;
                 this.stackTrace = stackTrace;
         }
-  
+
         toString() {
                 return JSON.stringify(this);
         }
 
         static fromString(str: string) {
-                try{
+                try {
                         Logger.instance.log('info', 'info', `Log: ${str}`);
                         // return JSON.parse(str) as LogEvent;
                 } catch (err: any) {
@@ -134,7 +134,7 @@ export function LogEventDecorator(type: LogEventType, level: LogEventLevel, mess
 // }
 
 
-class LogEventPrettyPrinter{
+class LogEventPrettyPrinter {
         static print(event: LogEvent) {
                 const type = event.type;
                 const level = event.level;
@@ -142,7 +142,7 @@ class LogEventPrettyPrinter{
                 const timestamp = event.timestamp;
                 const context = event.context;
                 const stackTrace = event.stackTrace;
-                const prettyMessage = `${timestamp.toISOString()} [${type}] [${level}] ${message} ${context??""} ${stackTrace??""}`;
+                const prettyMessage = `${timestamp.toISOString()} [${type}] [${level}] ${message} ${context ?? ""} ${stackTrace ?? ""}`;
                 return prettyMessage;
         }
         static consolePrint(event: LogEvent) {
