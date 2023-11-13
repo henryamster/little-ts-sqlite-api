@@ -23,58 +23,29 @@ LogEvent.fromString("Starting server and logging agent");
 LogEvent.fromString("Adding models to database");
 addModels();
 
-
-
 LogEvent.fromString("Creating express app");
 export const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-
 export const testMessageController = controller(TestMessage);
 
-
-
-const testMessageControllerAndRoute: [string, Controller<TestMessage>][] = [
+LogEvent.fromString("Adding routes and controllers");
+const routeControllerMap = new Map<string, Controller<any>>([
     ["/test/", testMessageController],
-];
+]);
 
-const routeControllerMap = new Map<string, Controller<any>>(
-    testMessageControllerAndRoute
-);
-
-// Use the controllers
+LogEvent.fromString("Adding forms to controllers");
 for (let [route, controller] of routeControllerMap) {
     app.use(route, controller.getRouter());
+    app.get(`/client/${controller.getTypeName()}/test`, (req, res) => {
+        let html = '';
+        res.send(html);
+    });
 }
 
 LogEvent.fromString("Adding custom routes");
 customRoutes();
-
-
-LogEvent.fromString("Adding router map");
-const routerMap = new Map();
-
-
-LogEvent.fromString("Adding controllers");
-// export const testMessageController = controller(TestMessage);
-routerMap.set("/test", testMessageController);
-
-LogEvent.fromString("Adding routes");
-for (let [route, controller] of routerMap) {
-    app.use(route, controller.router);
-}
-
-const controllers = mapRoutesToControllers(routerMap);
-
-const formBuilder = new FormBuilder();
-
-for (const controller of controllers) {
-        app.get(`/client/${controller.getTypeName()}/test`, (req, res) => {
-            let html = '';
-            res.send(html);
-        });
-};
 
 LogEvent.fromString("Creating server");
 const app_port = configurePort();
