@@ -1,7 +1,7 @@
 import { Database } from "./Database";
 import { Column, ColumnType } from "./Column";
 import { Table } from "./Table";
-import { LogEvent, LogEventDecorator } from "../Utilities/Logger";
+import { LogEvent } from "../Utilities/Logger";
 
 export class DatabaseHelper {
   static ColumnGenerator(name: string, type: ColumnType): Column {

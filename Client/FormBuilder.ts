@@ -228,6 +228,19 @@ class FileInputFormElement extends FormElement {
         `;
   }
 }
+class HiddenInputFormElement extends FormElement {
+  value: any;
+  constructor(name: string, value: string, label: string = name) {
+    super(name, "hidden", label);
+  }
+  render(): string {
+    return `
+            <!--label for="${this.name}">${this.label}</label-->
+            <input type="${this.type}" id="${this.name}" name="${this.name}" value="${this.value}">
+        `;
+  }
+}
+
 
 export class GenericControllerFormElementCollections {
   public static SingleTextForm(formName: string): FormElement[] {
@@ -281,7 +294,6 @@ export class GenericControllerFormElementCollections {
     return [new FormElement("submit", "submit")];
   }
 }
-
 export class ControllerMethodForms {
   static CreateForm<T extends object>(
     type: T,
@@ -293,6 +305,9 @@ export class ControllerMethodForms {
         ? metadata.name
         : typeof (type[key as keyof T] as Record<string, unknown>);
       console.log(`Key: ${JSON.stringify(key)}`);
+      if (key.toString() === "id") {
+        return new HiddenInputFormElement("id", "0");
+      }
       switch (typeof type[key as keyof T]) {
         case "string":
           return new TextInputFormElement(key.toString());
@@ -327,7 +342,9 @@ export class ControllerMethodForms {
       "Create",
       `onsubmit="event.preventDefault(); fetch(this.action, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(new FormData(this))) }); console.log({ method: 'POST', body: JSON.stringify(Object.fromEntries(new FormData(this))) });"`
     );
-  }
+  
+}
+
 
   public static UpdateForm<T extends object>(
     type: T,

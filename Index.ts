@@ -13,8 +13,6 @@ import express from "express";
 // Logging
 import { addLogging } from "./Utilities/Logger";
 import { LogEvent } from "./Utilities/Logger";
-import { FormBuilder } from "./Client/FormBuilder";
-import { mapRoutesToControllers } from "./Client/FormBuilder";
 import Controller from "./API/Controller";
 
 addLogging();

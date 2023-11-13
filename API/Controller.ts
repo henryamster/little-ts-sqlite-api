@@ -47,8 +47,8 @@ export default class Controller<T extends { [key: string]: any }> {
         @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300&display=swap');
         form {
         
-          padding: 10px;
-          margin: 10px;
+          padding: 0;
+          margin: 0;
           font-family: 'Open Sans', sans-serif;
         }
         form input {

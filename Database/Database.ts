@@ -1,6 +1,6 @@
 import { Table } from "./Table";
 import { db } from "./DataLayer";
-import { LogEvent, LogEventDecorator } from "../Utilities/Logger";
+import { LogEvent } from "../Utilities/Logger";
 
 export class Database {
     public dropAndCreateDatabase() {

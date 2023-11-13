@@ -1,4 +1,3 @@
-import { log } from "console";
 import { db } from "./DataLayer";
 import { LogEvent, LogEventDecorator } from "../Utilities/Logger";
 import { QuerySanitizer } from "../API/QuerySanitizer";

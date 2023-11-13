@@ -1,11 +1,8 @@
 import TestMessage from "./Models/TestMessage";
 import { LogEvent } from "./Utilities/Logger";
 import { testMessageController } from "./Index";
-import { ColumnType } from "./Database/Column";
-import { controller } from "./API/Controller";
-import Controller from "./API/Controller";
 import { Request, Response } from "express";
-import { Repository } from "./Database/Repository";
+
 
 export async function customRoutes() {
   testMessageController.addCustomRoute("get", "/hello", async (req:Request, res:Response) => {
