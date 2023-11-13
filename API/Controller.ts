@@ -23,7 +23,7 @@ export default class Controller<T extends { [key: string]: any }> {
     this.router.post("/Create", this.create.bind(this));
     this.router.get("/All", this.all.bind(this));
     this.router.get("/Query", this.query.bind(this));
-    this.router.get("Find/:id", this.find.bind(this));
+    this.router.get("/Find/:id", this.find.bind(this));
     this.router.put("/Update/:id", this.update.bind(this));
     this.router.delete("/Delete/:id", this.delete.bind(this));
     
@@ -32,20 +32,54 @@ export default class Controller<T extends { [key: string]: any }> {
           LogEvent.fromString("Getting forms");
           const forms: Form[] =[
             ControllerMethodForms.AllForm(this.instance, this),
+            ControllerMethodForms.FindForm(this.instance, this ),
             ControllerMethodForms.CreateForm(this.instance, this),
-            ControllerMethodForms.DeleteForm(this.instance, this),
-            ControllerMethodForms.FindForm(this.instance, this),
-            ControllerMethodForms.QueryForm(this.instance , this),
             ControllerMethodForms.UpdateForm(this.instance, this),
+            ControllerMethodForms.DeleteForm(this.instance, this),
+            ControllerMethodForms.QueryForm(this.instance , this),
           ]
 
          // now the forms have actions attached but need to be typed
         let html = "";
+
+        // add css for the forms
+        html += `<body><style>
+        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300&display=swap');
+        form {
+        
+          padding: 10px;
+          margin: 10px;
+          font-family: 'Open Sans', sans-serif;
+        }
+        form input {
+          margin: 2px;
+          font-family: 'Open Sans', sans-serif;
+        }
+        form button {
+          margin: 2px;
+        }
+        form label {
+          margin: 1px;
+        }
+        form .form {
+          margin: 2px;
+        }
+        h2 {
+          font-family: 'Open Sans', sans-serif;
+          margin: 4px;
+        }
+
+        </style>`;
+
         // Let's render each form and add it to the html
         const renderList: string[] = [];
       for (const form of forms) {
+        // this is where we can pass the id context in, but we want to bind
+        // that value to the form input
+        
         const renderedForm = form.render();
         renderList.push(renderedForm);
+
       }
       html += renderList.join("\n");
       res.send(html);
@@ -61,25 +95,24 @@ export default class Controller<T extends { [key: string]: any }> {
     return route;
   }
 
-  create(req: Request, res: Response): void {
+  async create(req: Request, res: Response): Promise<void> {
     LogEvent.fromString("Creating item");
-    this.repository.create(req.body).then((id: number) => {
+    await this.repository.create(req.body).then(async (id: number) => {
       LogEvent.fromString(`Item created with id ${id}`);
-      this.repository.find(id).then((item: T) => {
+      await this.repository.find(id).then((item: T) => {
         res.status(201).json(item);
       });
     });
   }
-  all(req: Request, res: Response): void {
+  async all(req: Request, res: Response): Promise<void> {
     LogEvent.fromString("Getting all items");
-    this.repository.all().then((items: T[]) => {
+    await this.repository.all().then((items: T[]) => {
       res.status(200).json(items);
     });
   }
-  find(req: Request, res: Response): void {
-    const id = parseInt(req.query.id as string);
-    LogEvent.fromString("Finding item " + id);
-    this.repository.find(id).then((item: T) => {
+  async find(req: Request, res: Response): Promise<void> {
+    const id = parseInt(req.params.id);
+    await this.repository.find(id).then((item: T) => {
       if (item) {
         LogEvent.fromString("Item found");
         res.status(200).json(item);
@@ -90,11 +123,11 @@ export default class Controller<T extends { [key: string]: any }> {
     });
   }
 
-  update(req: Request, res: Response): void {
-    const id = parseInt(req.query.id as string);
+  async update(req: Request, res: Response): Promise<void> {
+    const id = parseInt(req.params.id);
     LogEvent.fromString("Updating item " + id);
-    this.repository.update(id, req.body).then(() => {
-      this.repository.find(id).then((item: T) => {
+    await this.repository.update(id, req.body).then(async () => {
+      await this.repository.find(id).then((item: T) => {
         if (item) {
           LogEvent.fromString("Item updated");
           res.status(200).json(item);
@@ -106,10 +139,10 @@ export default class Controller<T extends { [key: string]: any }> {
     });
   }
 
-  delete(req: Request, res: Response): void {
-    const id = parseInt(req.query.id as string);
+  async delete(req: Request, res: Response): Promise<void> {
+    const id = parseInt(req.params.id);
     LogEvent.fromString("Deleting item " + id);
-    this.repository
+    await this.repository
       .delete(id)
       .then(() => {
         LogEvent.fromString("Item deleted");
@@ -120,11 +153,11 @@ export default class Controller<T extends { [key: string]: any }> {
         res.status(404).send();
       });
   }
-  query(req: Request, res: Response): void {
+  async query(req: Request, res: Response): Promise<void> {
     let q = req.query.query as string;
     q= QuerySanitizer.santizieQuery(q);
     LogEvent.fromString("Querying items with query " + q);
-    this.repository
+    await this.repository
       .customQuery(q)
       .then((items: T[]) => {
         res.status(200).json(items);
@@ -140,7 +173,7 @@ export default class Controller<T extends { [key: string]: any }> {
     return this.router;
   }
 
-  addCustomRoute(
+  async addCustomRoute(
     method: "get" | "post" | "put" | "delete",
     path: string,
     handler: (

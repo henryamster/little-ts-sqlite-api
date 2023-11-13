@@ -24,10 +24,11 @@ export class Form {
     public type: string = ""
   ) {}
 
-  render(): string {
+  render(id?:number): string {
+    const action = id ? `${this.action}/${id}` : this.action;
     let formHtml = `
             <h2>${this.method} - ${this.action} - ${this.type}</h2>
-            <form action="${this.action}">
+            <form action="${action}">
         `;
 
     for (const element of this.elements) {
@@ -49,16 +50,18 @@ export class FormWithControllerContext<
     public controller: Controller<T>,
     public action: string = "",
     public method: string = "",
-    public type: string = ""
+    public type: string = "",
+    public onsubmit?: string
   ) {
     super(elements, action, method, type);
   }
 
   render(): string {
     let formHtml = `
-            <h2>${this.method} - ${this.action} - ${this.type}</h2>
-            <form action="${this.action}" method="${this.method}">
+            <h2>${this.method.replace('/','')} - ${this.type}</h2>
+            <form action="${this.action}" method="${this.method}" ${this.onsubmit}>
         `;
+ 
 
     for (const element of this.elements) {
       formHtml += element.render();
@@ -319,15 +322,17 @@ export class ControllerMethodForms {
     return new FormWithControllerContext(
       elements,
       controller,
-      "Create",
+      `Create`,
       "POST",
-      "Create"
+      "Create",
+      `onsubmit="event.preventDefault(); fetch(this.action, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(new FormData(this))) }); console.log({ method: 'POST', body: JSON.stringify(Object.fromEntries(new FormData(this))) });"`
     );
   }
 
   public static UpdateForm<T extends object>(
     type: T,
-    controller: Controller<T>
+    controller: Controller<T>,
+
   ): Form {
     const elements = Reflect.ownKeys(type).map((key: string | symbol) => {
       const metadata: any = Reflect.getMetadata("design:type", type, key);
@@ -364,37 +369,41 @@ export class ControllerMethodForms {
     return new FormWithControllerContext(
       elements,
       controller,
-      "Update",
+      `Update/`,
       "PUT",
-      "Update"
-    );
-  }
+      `Update/`,
+      `onsubmit="event.preventDefault(); this.action=this.action + this.id.value; fetch(this.action, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(new FormData(this))) }); console.log({ method: 'PUT', body: JSON.stringify(Object.fromEntries(new FormData(this))) });"`
+    )};
 
   // this one is just a numeric id and submit
   public static DeleteForm<T extends object>(
     type: T,
-    controller: Controller<T>
+    controller: Controller<T>,
   ): Form {
     return new FormWithControllerContext(
       [new NumberInputFormElement("id")],
       controller,
-      "Delete",
+      `Delete/`,
       "DELETE",
-      "Delete"
+      `Delete/`,
+      `onsubmit="event.preventDefault(); this.action=this.action + this.id.value; fetch(this.action, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(new FormData(this))) }); console.log({ method: 'DELETE', body: JSON.stringify(Object.fromEntries(new FormData(this))) });"`
     );
   }
 
   // this one is just a numeric id and submit
   public static FindForm<T extends object>(
     type: T,
-    controller: Controller<T>
+    controller: Controller<T>,
+
   ): Form {
     return new FormWithControllerContext(
       [new NumberInputFormElement("id")],
       controller,
-      "Find",
+      // dynamic route:
+      `Find/`,
       "GET",
-      "Find"
+      `Find/`,
+      `onsubmit="this.action=this.action + this.id.value"`
     );
   }
 
@@ -403,7 +412,7 @@ export class ControllerMethodForms {
     type: T,
     controller: Controller<T>
   ): Form {
-    return new FormWithControllerContext([], controller, "All", "GET", "All");
+    return new FormWithControllerContext([], controller, "All", "GET", "All", );
   }
 
   // this one is just a texta

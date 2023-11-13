@@ -7,7 +7,7 @@ import Controller from "./API/Controller";
 import { Request, Response } from "express";
 import { Repository } from "./Database/Repository";
 
-export function customRoutes() {
+export async function customRoutes() {
   testMessageController.addCustomRoute("get", "/hello", async (req:Request, res:Response) => {
     const messages = await testMessageController.repository.typedQuery<number>(
       "SELECT MAX(id) FROM TestMessage"
