@@ -105,31 +105,27 @@ export class Repository<
   public async create(item: T): Promise<number> {
     // check if item has id property
     let autoIncId = 0;
-    if (item.hasOwnProperty("id")) {
-      LogEvent.fromObject({
-        level: "info",
-        message: "Repository.create() called",
-        data: {
-          item: JSON.stringify(item),
-        },
-        timestamp: new Date().toISOString(),
-      });
-      const id = await this.customQuery(`SELECT MAX(id) FROM ${this.table}`);
-      // Set the id
-      LogEvent.fromObject({
-        level: "info",
-        message: "Repository.create() called",
-        data: {
-          item: item,
-          id: id[0]["MAX(id)"] ? id[0]["MAX(id)"] + 1 : 0,
-        },
-        timestamp: new Date().toISOString(),
-      });
-      autoIncId= await id[0]["MAX(id)"] ? id[0]["MAX(id)"] + 1 : 0;
-    }
-    if (autoIncId != null) {
-      item.id = autoIncId;
-    }
+    LogEvent.fromObject({
+      level: "info",
+      message: "Repository.create() called",
+      data: {
+        item: JSON.stringify(item),
+      },
+      timestamp: new Date().toISOString(),
+    });
+    const id = await this.customQuery(`SELECT MAX(id) FROM ${this.table}`);
+    // Set the id
+    autoIncId = id[0]["MAX(id)"] !== null ? id[0]["MAX(id)"] + 1 : 0;
+    LogEvent.fromObject({
+      level: "info",
+      message: "Repository.create() called",
+      data: {
+        item: item,
+        id: autoIncId,
+      },
+      timestamp: new Date().toISOString(),
+    });
+    item.id = autoIncId;
 
     const columns = Object.keys(item).join(",");
     const placeholders = Object.keys(item)
